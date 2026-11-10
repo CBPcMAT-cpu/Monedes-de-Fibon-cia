@@ -245,3 +245,242 @@
       document.getElementById('table-title').innerText = t.tableTitle;
       document.getElementById('table-desc').innerText = t.tableDesc;
       document.getElementById('magic-title').innerText = t.magicTitle;
+      document.getElementById('magic-desc').innerText = t.magicDesc;
+      document.getElementById('magic-result-label').innerText = t.magicResultLabel;
+    }
+
+    function renderUI() {
+      renderBank();
+      renderSack();
+      renderTable();
+      renderMagicCards();
+    }
+
+    function renderBank() {
+      const bank = document.getElementById('available-coins-bank');
+      bank.innerHTML = '';
+      FIBONACCI.forEach(val => {
+        const btn = document.createElement('button');
+        btn.className = "coin bg-amber-400 hover:bg-amber-300 text-amber-950 font-extrabold w-12 h-12 rounded-full border-2 border-amber-600 shadow flex items-center justify-center text-lg";
+        btn.innerText = val;
+        btn.onclick = () => addCoin(val);
+        bank.appendChild(btn);
+      });
+    }
+
+    function addCoin(val) {
+      selectedCoins.push(val);
+      renderSack();
+    }
+
+    function removeCoin(index) {
+      selectedCoins.splice(index, 1);
+      renderSack();
+    }
+
+    function clearSack() {
+      selectedCoins = [];
+      renderSack();
+    }
+
+    function randomizeTarget() {
+      targetPrice = Math.floor(Math.random() * 30) + 1;
+      document.getElementById('target-price').value = targetPrice;
+      selectedCoins = [];
+      renderSack();
+    }
+
+    document.getElementById('target-price').addEventListener('input', (e) => {
+      let val = parseInt(e.target.value);
+      if (isNaN(val) || val < 1) val = 1;
+      if (val > 30) val = 30;
+      targetPrice = val;
+      selectedCoins = [];
+      renderSack();
+    });
+
+    function selectTargetFromTable(num) {
+      targetPrice = num;
+      document.getElementById('target-price').value = num;
+      selectedCoins = solvedTargets[num] ? [...solvedTargets[num]] : [];
+      switchTab('sack');
+    }
+
+    function renderSack() {
+      const sack = document.getElementById('sack-area');
+      sack.innerHTML = '';
+      const t = i18n[currentLang];
+
+      if (selectedCoins.length === 0) {
+        sack.innerHTML = `<span class="text-amber-800/60 font-medium">${t.emptySack}</span>`;
+      } else {
+        selectedCoins.forEach((val, idx) => {
+          const coin = document.createElement('div');
+          coin.className = "coin bg-amber-400 text-amber-950 font-extrabold w-12 h-12 rounded-full border-2 border-amber-600 shadow flex items-center justify-center text-lg cursor-pointer relative group";
+          coin.innerText = val;
+          coin.onclick = () => removeCoin(idx);
+
+          const badge = document.createElement('span');
+          badge.className = "absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition";
+          badge.innerText = "✕";
+          coin.appendChild(badge);
+
+          sack.appendChild(coin);
+        });
+      }
+
+      const sum = selectedCoins.reduce((a, b) => a + b, 0);
+      document.getElementById('current-sum').innerText = `${sum} / ${targetPrice}`;
+
+      const hasRepeat = new Set(selectedCoins).size !== selectedCoins.length;
+      const ruleRepEl = document.getElementById('rule-repeat');
+      if (selectedCoins.length === 0) {
+        ruleRepEl.className = "flex items-center gap-2 text-slate-500";
+        document.getElementById('icon-repeat').innerText = "⚪";
+        document.getElementById('txt-repeat').innerText = t.ruleRepeatOk.split('✓')[0];
+      } else if (!hasRepeat) {
+        ruleRepEl.className = "flex items-center gap-2 text-emerald-700 font-semibold";
+        document.getElementById('icon-repeat').innerText = "✅";
+        document.getElementById('txt-repeat').innerText = t.ruleRepeatOk;
+      } else {
+        ruleRepEl.className = "flex items-center gap-2 text-red-600 font-semibold";
+        document.getElementById('icon-repeat').innerText = "❌";
+        document.getElementById('txt-repeat').innerText = t.ruleRepeatErr;
+      }
+
+      let hasNeighbor = false;
+      const sorted = [...selectedCoins].sort((a, b) => a - b);
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const idxA = FIBONACCI.indexOf(sorted[i]);
+        const idxB = FIBONACCI.indexOf(sorted[i+1]);
+        if (idxB === idxA + 1) {
+          hasNeighbor = true;
+          break;
+        }
+      }
+
+      const ruleNeighEl = document.getElementById('rule-neighbor');
+      if (selectedCoins.length === 0) {
+        ruleNeighEl.className = "flex items-center gap-2 text-slate-500";
+        document.getElementById('icon-neighbor').innerText = "⚪";
+        document.getElementById('txt-neighbor').innerText = t.ruleNeighborOk.split('✓')[0];
+      } else if (!hasNeighbor) {
+        ruleNeighEl.className = "flex items-center gap-2 text-emerald-700 font-semibold";
+        document.getElementById('icon-neighbor').innerText = "✅";
+        document.getElementById('txt-neighbor').innerText = t.ruleNeighborOk;
+      } else {
+        ruleNeighEl.className = "flex items-center gap-2 text-red-600 font-semibold";
+        document.getElementById('icon-neighbor').innerText = "❌";
+        document.getElementById('txt-neighbor').innerText = t.ruleNeighborErr;
+      }
+
+      const victoryBanner = document.getElementById('victory-banner');
+      if (sum === targetPrice && !hasRepeat && !hasNeighbor) {
+        victoryBanner.classList.remove('hidden');
+        solvedTargets[targetPrice] = [...selectedCoins];
+        renderTable();
+      } else {
+        victoryBanner.classList.add('hidden');
+      }
+    }
+
+    function switchTab(tabName) {
+      document.getElementById('sec-sack').classList.add('hidden');
+      document.getElementById('sec-table').classList.add('hidden');
+      document.getElementById('sec-magic').classList.add('hidden');
+
+      document.getElementById('tab-sack').className = "px-4 py-2 font-bold rounded-t-lg bg-amber-200 text-amber-900 hover:bg-amber-300";
+      document.getElementById('tab-table').className = "px-4 py-2 font-bold rounded-t-lg bg-amber-200 text-amber-900 hover:bg-amber-300";
+      document.getElementById('tab-magic').className = "px-4 py-2 font-bold rounded-t-lg bg-amber-200 text-amber-900 hover:bg-amber-300";
+
+      if (tabName === 'sack') {
+        document.getElementById('sec-sack').classList.remove('hidden');
+        document.getElementById('tab-sack').className = "px-4 py-2 font-bold rounded-t-lg bg-amber-600 text-white shadow";
+      } else if (tabName === 'table') {
+        document.getElementById('sec-table').classList.remove('hidden');
+        document.getElementById('tab-table').className = "px-4 py-2 font-bold rounded-t-lg bg-amber-600 text-white shadow";
+        renderTable();
+      } else if (tabName === 'magic') {
+        document.getElementById('sec-magic').classList.remove('hidden');
+        document.getElementById('tab-magic').className = "px-4 py-2 font-bold rounded-t-lg bg-amber-600 text-white shadow";
+      }
+    }
+
+    function renderTable() {
+      const grid = document.getElementById('table-grid');
+      grid.innerHTML = '';
+      const t = i18n[currentLang];
+
+      for (let i = 1; i <= 30; i++) {
+        const isSolved = !!solvedTargets[i];
+        const coins = solvedTargets[i] ? solvedTargets[i].join(' + ') : '?';
+
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-xl border cursor-pointer transition flex flex-col items-center justify-between ${
+          isSolved ? 'bg-emerald-50 border-emerald-400 shadow-sm' : 'bg-amber-50/60 border-amber-200 hover:bg-amber-100'
+        }`;
+        card.onclick = () => selectTargetFromTable(i);
+
+        card.innerHTML = `
+          <div class="flex justify-between w-full items-center">
+            <span class="text-xs font-bold text-amber-900">Preu ${i}</span>
+            ${isSolved ? `<span class="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded font-bold">${t.solvedText}</span>` : ''}
+          </div>
+          <span class="text-base font-extrabold my-2 ${isSolved ? 'text-emerald-800' : 'text-slate-400'}">${coins}</span>
+          <span class="text-[11px] text-amber-700 underline font-medium">Resolver ➔</span>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    // Tarjetas exactas según el PDF original de helloMath (A, B, C, D, E)
+    const MAGIC_CARDS = [
+      { id: 'A', value: 1, numbers: [1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31] },
+      { id: 'B', value: 2, numbers: [2, 3, 6, 7, 10, 11, 14, 15, 18, 19, 22, 23, 26, 27, 30, 31] },
+      { id: 'C', value: 4, numbers: [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31] },
+      { id: 'D', value: 8, numbers: [8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31] },
+      { id: 'E', value: 16, numbers: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31] }
+    ];
+
+    function renderMagicCards() {
+      const container = document.getElementById('cards-container');
+      container.innerHTML = '';
+      MAGIC_CARDS.forEach(card => {
+        const isSel = magicSelectedCards.has(card.value);
+        const el = document.createElement('div');
+        el.className = `p-4 rounded-xl border-2 cursor-pointer transition flex flex-col justify-between ${
+          isSel ? 'border-amber-600 bg-amber-100 shadow-md' : 'border-slate-200 bg-slate-50 hover:border-amber-300'
+        }`;
+        el.onclick = () => toggleMagicCard(card.value);
+
+        el.innerHTML = `
+          <div class="flex justify-between items-center mb-2">
+            <span class="font-bold text-amber-900">Tarjeta ${card.id}</span>
+            <span class="text-xs px-2 py-0.5 rounded ${isSel ? 'bg-amber-600 text-white' : 'bg-slate-200 text-slate-600'}">
+              ${isSel ? '✓ Seleccionada' : '+ Elegir'}
+            </span>
+          </div>
+          <div class="flex flex-wrap gap-1 text-xs text-slate-700 font-mono">
+            ${card.numbers.map(n => `<span class="bg-white/80 px-1.5 py-0.5 rounded border border-slate-200">${n}</span>`).join('')}
+          </div>
+        `;
+        container.appendChild(el);
+      });
+    }
+
+    function toggleMagicCard(val) {
+      if (magicSelectedCards.has(val)) {
+        magicSelectedCards.delete(val);
+      } else {
+        magicSelectedCards.add(val);
+      }
+      renderMagicCards();
+
+      const total = Array.from(magicSelectedCards).reduce((a, b) => a + b, 0);
+      document.getElementById('magic-result').innerText = total > 0 ? total : '?';
+    }
+
+    setLanguage('es');
+  </script>
+</body>
+</html>
