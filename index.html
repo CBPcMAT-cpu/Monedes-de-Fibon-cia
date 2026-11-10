@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monedes de Fibonàcia - PCMAT</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            green: '#2e7d32',
+                            lightGreen: '#e8f5e9',
+                            yellow: '#fbc02d',
+                            orange: '#f57c00',
+                            purple: '#7b1fa2',
+                            blue: '#1976d2',
+                            teal: '#00796b',
+                            brown: '#8d6e63'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Fredoka', 'Nunito', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .coin-shadow {
+            box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+        }
+        .coin-shadow:active {
+            box-shadow: 0 2px 0 rgba(0, 0, 0, 0.15), inset 0 2px 4px rgba(255, 255, 255, 0.6);
+            transform: translateY(4px);
+        }
+        .sack-bg {
+            background: radial-gradient(circle at 50% 40%, #e0a96d 0%, #b87b43 70%, #8c5324 100%);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+    </style>
+</head>
+<body class="bg-amber-50/50 text-slate-800 font-sans min-h-screen flex flex-col selection:bg-yellow-200">
+
+    <!-- HEADER / NAVIGATION -->
+    <header class="bg-gradient-to-r from-emerald-700 via-green-600 to-teal-700 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-white text-emerald-700 p-2.5 rounded-2xl shadow-inner flex items-center justify-center font-black text-2xl w-12 h-12 border-2 border-emerald-300">
+                    𝐹
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-wide flex items-center gap-2">
+                        Monedes de Fibonàcia
+                        <span class="text-xs bg-yellow-400 text-emerald-950 px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider">PCMAT 6è</span>
+                    </h1>
+                    <p class="text-xs text-emerald-100 font-medium">Teorema de Zeckendorf i Exploració Matemàtica</p>
+                </div>
+            </div>
+
+            <!-- TAB BUTTONS -->
+            <nav class="flex flex-wrap gap-1 bg-emerald-900/40 p-1.5 rounded-2xl border border-emerald-500/30">
+                <button onclick="switchTab('bossa')" id="tab-bossa" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 bg-white text-emerald-800 shadow-md">
+                    <i class="fa-solid fa-bag-shopping text-amber-600"></i> La Bossa
+                </button>
+                <button onclick="switchTab('repte')" id="tab-repte" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 text-white hover:bg-white/10">
+                    <i class="fa-solid fa-list-check text-yellow-300"></i> Taula 1-30
+                </button>
+                <button onclick="switchTab('targetes')" id="tab-targetes" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 text-white hover:bg-white/10">
+                    <i class="fa-solid fa-wand-magic-sparkles text-purple-300"></i> Targetes Màgiques
+                </button>
+                <button onclick="switchTab('teoria')" id="tab-teoria" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 text-white hover:bg-white/10">
+                    <i class="fa-solid fa-book-open text-cyan-300"></i> Què és?
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6">
+
+        <!-- SECTION 1: LA BOSSA DE FIBONÀCIA -->
+        <section id="sec-bossa" class="tab-content block space-y-6">
+            <!-- TOP CONTROLS & RULES SUMMARY -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Target Selector -->
+                <div class="bg-white p-5 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-1">Pas 1: Trieu el preu</span>
+                        <h2 class="text-lg font-bold text-slate-700 flex items-center gap-2">
+                            <i class="fa-solid fa-tag text-emerald-600"></i> Preu Objectiu
+                        </h2>
+                    </div>
+                    <div class="flex items-center gap-3 my-3">
+                        <button onclick="changePrice(-1)" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold text-xl text-slate-600 flex items-center justify-center transition active:scale-95">-</button>
+                        <div class="flex-1 text-center bg-amber-50 border-2 border-amber-200 rounded-2xl py-2">
+                            <span id="target-price-display" class="text-4xl font-black text-amber-700">12</span>
+                            <span class="text-xs font-bold text-amber-600 block">FIBOS</span>
+                        </div>
+                        <button onclick="changePrice(1)" class="w-10 h-10 rounded-2xl bg-slate-100 hover:bg-slate-200 font-bold text-xl text-slate-600 flex items-center justify-center transition active:scale-95">+</button>
+                    </div>
+                    <div class="flex gap-2 overflow-x-auto pb-1 custom-scrollbar">
+                        <button onclick="setPrice(5)" class="px-3 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg text-xs font-bold transition">5</button>
+                        <button onclick="setPrice(12)" class="px-3 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg text-xs font-bold transition">12</button>
+                        <button onclick="setPrice(19)" class="px-3 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg text-xs font-bold transition">19</button>
+                        <button onclick="setPrice(27)" class="px-3 py-1 bg-slate-100 hover:bg-emerald-100 text-slate-700 rounded-lg text-xs font-bold transition">27</button>
+                        <button onclick="setRandomPrice()" class="px-3 py-1 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-xs font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-dice"></i> Aleatori
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Village Rules Box -->
+                <div class="md:col-span-2 bg-gradient-to-br from-amber-50 to-orange-50 p-5 rounded-3xl border-2 border-amber-200/80 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-black text-amber-900 flex items-center gap-2">
+                                <i class="fa-solid fa-scroll text-amber-600"></i> Les Dues Regles del Poble de Fibonàcia
+                            </h3>
+                            <span class="text-xs bg-amber-200/60 text-amber-900 font-bold px-2.5 py-1 rounded-full">Teorema de Zeckendorf</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-3">
+                            <div class="bg-white/80 p-3 rounded-2xl border border-amber-200/60 flex items-start gap-2.5">
+                                <div class="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shrink-0">1</div>
+                                <p class="text-xs font-semibold text-slate-700"><strong>Cada moneda només una vegada.</strong> No es pot repetir cap moneda a la bossa.</p>
+                            </div>
+                            <div class="bg-white/80 p-3 rounded-2xl border border-amber-200/60 flex items-start gap-2.5">
+                                <div class="w-7 h-7 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold text-sm shrink-0">2</div>
+                                <p class="text-xs font-semibold text-slate-700"><strong>Mai dues monedes veïnes.</strong> Queda prohibit usar dues monedes consecutives (ex: 3 i 5 ✖, però 5 i 2 ✔).</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INTERACTIVE PLAY AREA (COINS BANK + SACK) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                
+                <!-- COIN BANK (Available Coins) -->
+                <div class="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-coins text-yellow-500"></i> Monedes Disponibles
+                        </h3>
+                        <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">Fes clic per afegir</span>
+                    </div>
+
+                    <!-- Visual Coins Row/Grid -->
+                    <div id="coin-bank" class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-3 gap-4 justify-items-center py-2">
+                        <!-- Coins injected via JS -->
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/80 text-xs text-slate-500 font-medium text-center">
+                        💡 <strong>Consell:</strong> Comença provant la moneda més gran que sigui menor o igual que el preu!
+                    </div>
+                </div>
+
+                <!-- THE SACK (La Bossa) -->
+                <div class="lg:col-span-7 bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm flex flex-col items-center relative overflow-hidden">
+                    
+                    <!-- SACK GRAPHIC & CONTAINER -->
+                    <div class="w-full max-w-md bg-gradient-to-b from-amber-100/60 to-amber-200/40 border-2 border-amber-300/80 rounded-3xl p-6 flex flex-col items-center relative min-h-[340px] justify-between shadow-inner">
+                        
+                        <!-- Sack Top Visual -->
+                        <div class="w-32 h-8 bg-amber-700 rounded-t-full shadow-md flex items-center justify-center -mt-9 border-2 border-amber-900">
+                            <div class="w-24 h-2 bg-amber-400 rounded-full"></div>
+                        </div>
+
+                        <!-- Inside Sack Coins Area -->
+                        <div class="w-full flex-grow my-4 flex flex-wrap items-center justify-center gap-3 p-4 bg-amber-900/10 rounded-2xl border border-dashed border-amber-600/30 min-h-[160px]" id="sack-coins-container">
+                            <!-- Injected Coins in Sack -->
+                            <span id="sack-empty-msg" class="text-amber-800/50 font-bold text-sm italic">La bossa està buida. Fes clic sobre les monedes per ficar-les-hi!</span>
+                        </div>
+
+                        <!-- Live Calculations & Validation Banner -->
+                        <div class="w-full space-y-3">
+                            <!-- Sum Bar -->
+                            <div class="bg-white/90 p-3 rounded-2xl border border-amber-200 flex items-center justify-between shadow-sm">
+                                <span class="text-xs font-bold text-slate-500 uppercase">Suma actual:</span>
+                                <div class="flex items-baseline gap-1">
+                                    <span id="current-sum-display" class="text-3xl font-black text-slate-800">0</span>
+                                    <span class="text-xs font-bold text-slate-400">/ <span id="target-sum-ref">12</span> Fibos</span>
+                                </div>
+                            </div>
+
+                            <!-- Live Feedback Status Box -->
+                            <div id="status-feedback-box" class="p-4 rounded-2xl border-2 bg-slate-100 border-slate-300 text-slate-600 text-sm font-bold flex items-center gap-3 transition-all">
+                                <i class="fa-solid fa-info-circle text-xl"></i>
+                                <span>Afegeix monedes a la bossa per arribar al preu exactament!</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reset Sack Button -->
+                    <div class="mt-4 flex gap-3">
+                        <button onclick="clearSack()" class="px-5 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-rotate-left"></i> Buidar Bossa
+                        </button>
+                        <button onclick="autoSolveZeckendorf()" class="px-5 py-2.5 rounded-2xl bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-sm transition flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Resoldre Automàtic
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 2: TAULA DE REPTE 1-30 -->
+        <section id="sec-repte" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 rounded-3xl border-2 border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+                    <div>
+                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-list-check text-yellow-500"></i> Taula de Pagaments de Fibonàcia (1 al 30)
+                        </h2>
+                        <p class="text-xs text-slate-500 font-medium mt-1">Troba la combinació vàlida de monedes segons les dues regles per a cada preu.</p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="bg-amber-50 border border-amber-200 p-3 rounded-2xl flex items-center gap-4">
+                        <div>
+                            <span class="text-xs font-bold text-amber-700 block">Progrés de la classe:</span>
+                            <span id="progress-text" class="text-lg font-black text-amber-900">0 / 30 resolts</span>
+                        </div>
+                        <div class="w-32 bg-amber-200 h-3 rounded-full overflow-hidden">
+                            <div id="progress-bar-fill" class="bg-emerald-500 h-full w-0 transition-all duration-500"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[600px] overflow-y-auto p-1 custom-scrollbar">
+                    <!-- 30 Rows generated dynamically -->
+                    <div id="challenge-grid" class="contents"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: LES TARGETES MÀGIQUES DE FIBONÀCIA -->
+        <section id="sec-targetes" class="tab-content hidden space-y-6">
+            <div class="bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-6 relative overflow-hidden">
+                
+                <!-- Background decorative elements -->
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                <div class="max-w-2xl text-center mx-auto space-y-2">
+                    <span class="px-3 py-1 bg-purple-500/30 text-purple-200 rounded-full text-xs font-bold uppercase tracking-widest border border-purple-400/30">Truc de Màgia Matemàtic</span>
+                    <h2 class="text-2xl sm:text-3xl font-black text-purple-100">Les Targetes Màgiques d'en Fibonacci</h2>
+                    <p class="text-sm text-purple-200/80">Pensa un nombre secret entre el <strong>1 i el 31</strong>. Digues a quines d'aquestes targetes apareix el teu nombre i la màgia matemàtica de Zeckendorf l'endevinarà a l'instant!</p>
+                </div>
+
+                <!-- CARDS GRID -->
+                <div id="magic-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 my-6">
+                    <!-- 5 Magic Cards A, B, C, D, E injected via JS -->
+                </div>
+
+                <!-- REVEAL RESULT BOX -->
+                <div class="bg-white/10 backdrop-blur-md p-6 rounded-3xl border border-white/20 text-center max-w-xl mx-auto space-y-4">
+                    <h3 class="text-lg font-bold text-purple-200">El teu nombre secret és...</h3>
+                    <div id="magic-result-display" class="text-5xl font-black text-yellow-300 min-h-[60px] flex items-center justify-center">
+                        ?
+                    </div>
+                    <div id="magic-explanation" class="text-xs text-purple-200/70 font-medium">
+                        Selecciona "SÍ" a les targetes on aparegui el teu nombre per desvelar el secret!
+                    </div>
+                    <button onclick="resetMagicCards()" class="px-5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition">
+                        <i class="fa-solid fa-wand-magic"></i> Tornar a començar
+                    </button>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- SECTION 4: QUÈ ÉS? (EXPLICACIÓ DIDÀCTICA) -->
+        <section id="sec-teoria" class="tab-content hidden space-y-6">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl border-2 border-slate-200 shadow-sm space-y-6">
+                
+                <div class="border-b border-slate-100 pb-4">
+                    <span class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Fonamentació Didàctica per a l'Aula</span>
+                    <h2 class="text-2xl font-black text-slate-800 mt-1">El Teorema de Zeckendorf i les Monedes de Fibonàcia</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    
+                    <div class="space-y-4 text-slate-600 text-sm leading-relaxed">
+                        <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-200">
+                            <h3 class="font-bold text-emerald-900 text-base mb-1 flex items-center gap-2">
+                                <i class="fa-solid fa-lightbulb text-emerald-600"></i> Què diu el Teorema de Zeckendorf?
+                            </h3>
+                            <p>Tot nombre enter positiu es pot representar de manera <strong>ÚNICA</strong> com a suma d'un o més nombres de Fibonacci no consecutius ($1, 2, 3, 5, 8, 13, 21...$).</p>
+                        </div>
+
+                        <h4 class="font-bold text-slate-800 text-base">Per què usem aquestes dues regles al poble?</h4>
+                        <ul class="list-disc pl-5 space-y-2">
+                            <li><strong>Sense repetir moneda:</strong> Si repetim ($1+1=2$ o $3+3=6$), la representació deixa de ser única.</li>
+                            <li><strong>Mai monedes veïnes:</strong> Dos nombres consecutius de Fibonacci es sumen per donar el següent ($2+3=5$). Per tant, tenir $2$ i $3$ és redundant perquè és millor usar el $5$ directament!</li>
+                        </ul>
+                    </div>
+
+                    <div class="bg-amber-50/60 p-5 rounded-2xl border border-amber-200 space-y-3">
+                        <h4 class="font-bold text-amber-900 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles text-amber-600"></i> El secret de les Targetes Màgiques
+                        </h4>
+                        <p class="text-xs text-amber-800 leading-relaxed">
+                            Al sistema decimal comptem amb base 10 ($1, 10, 100...$). En el sistema binari comptem amb potències de 2 ($1, 2, 4, 8, 16...$).
+                        </p>
+                        <p class="text-xs text-amber-800 leading-relaxed">
+                            El **Sistema de Zeckendorf** ens permet escriure qualsevol nombre utilitzant els nombres de Fibonacci com a "base". Cada targeta (A, B, C, D, E) correspon a un nombre base de Fibonacci ($1, 2, 3, 5, 8$). Quan la persona diu que SÍ, només sumem el nombre base d'aquella targeta!
+                        </p>
+                        <div class="bg-white p-3 rounded-xl border border-amber-300/60 text-xs font-mono text-slate-700">
+                            Exemple (Nombre 19):<br>
+                            19 = 13 + 5 + 1 (Sense veïns: 13, 5, 1)<br>
+                            Surt a la Targeta A (+1), Targeta D (+5) i Targeta F (+13).
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-100 border-t border-slate-200 py-4 mt-8 text-center text-xs text-slate-500 font-medium">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
+            <p>Programa PCMAT - Proposta 6: Fibonacci a la Natura i la Geometria</p>
+            <p>Creat per a l'aprenentatge manipulatiu de les matemàtiques a 6è de Primària</p>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- DATA STRUCTURES ---
+        const FIBONACCI_COINS = [
+            { val: 1, color: 'bg-amber-400 border-amber-600 text-amber-950', hex: '#fbbf24' },
+            { val: 2, color: 'bg-orange-400 border-orange-600 text-orange-950', hex: '#fb923c' },
+            { val: 3, color: 'bg-rose-400 border-rose-600 text-rose-950', hex: '#fb7185' },
+            { val: 5, color: 'bg-purple-400 border-purple-600 text-purple-950', hex: '#c084fc' },
+            { val: 8, color: 'bg-sky-400 border-sky-600 text-sky-950', hex: '#38bdf8' },
+            { val: 13, color: 'bg-emerald-400 border-emerald-600 text-emerald-950', hex: '#34d399' },
+            { val: 21, color: 'bg-amber-700 border-amber-900 text-amber-50', hex: '#b45309' }
+        ];
+
+        // Magic Cards Data based on Zeckendorf base representation
+        const MAGIC_CARDS = [
+            { id: 'A', base: 1, name: 'Targeta A', numbers: [1, 4, 6, 9, 12, 14, 17, 19, 22, 25, 27, 30] },
+            { id: 'B', base: 2, name: 'Targeta B', numbers: [2, 4, 7, 9, 10, 15, 17, 20, 22, 25, 28, 30] },
+            { id: 'C', base: 3, name: 'Targeta C', numbers: [3, 4, 5, 6, 7, 11, 12, 18, 19, 20, 26, 27, 28] },
+            { id: 'D', base: 5, name: 'Targeta D', numbers: [5, 6, 7, 8, 9, 10, 11, 12, 18, 19, 20, 29, 30, 31] },
+            { id: 'E', base: 8, name: 'Targeta E', numbers: [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 31] }
+        ];
+
+        // --- APP STATE ---
+        let targetPrice = 12;
+        let selectedCoinsInSack = []; // Array of coin values in sack
+        let solvedPrices = new Set(); // Track completed prices in table
+        let magicCardChoices = {}; // { A: true, B: false, ... }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            renderCoinBank();
+            updateSackUI();
+            renderChallengeGrid();
+            renderMagicCards();
+        };
+
+        // --- TAB NAVIGATION ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-emerald-800', 'shadow-md');
+                btn.classList.add('text-white', 'hover:bg-white/10');
+            });
+
+            document.getElementById(`sec-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.add('bg-white', 'text-emerald-800', 'shadow-md');
+            activeBtn.classList.remove('text-white', 'hover:bg-white/10');
+        }
+
+        // --- COIN BANK & SACK LOGIC ---
+        function renderCoinBank() {
+            const bankEl = document.getElementById('coin-bank');
+            bankEl.innerHTML = '';
+
+            FIBONACCI_COINS.forEach(coin => {
+                const isSelected = selectedCoinsInSack.includes(coin.val);
+                const button = document.createElement('button');
+                button.onclick = () => toggleCoin(coin.val);
+                button.className = `w-20 h-20 sm:w-22 sm:h-22 rounded-full border-4 flex flex-col items-center justify-center coin-shadow font-black transition-all transform active:scale-90 ${coin.color} ${isSelected ? 'opacity-30 scale-90 border-dashed' : 'hover:scale-105'}`;
+                
+                button.innerHTML = `
+                    <span class="text-xl sm:text-2xl leading-none">${coin.val}</span>
+                    <span class="text-[9px] uppercase tracking-wider font-bold opacity-80">Fibos</span>
+                `;
+                bankEl.appendChild(button);
+            });
+        }
+
+        function toggleCoin(val) {
+            const index = selectedCoinsInSack.indexOf(val);
+            if (index > -1) {
+                selectedCoinsInSack.splice(index, 1);
+            } else {
+                selectedCoinsInSack.push(val);
+            }
+            // Sort coins descending for clean representation
+            selectedCoinsInSack.sort((a, b) => b - a);
+            renderCoinBank();
+            updateSackUI();
+        }
+
+        function setPrice(price) {
+            targetPrice = Math.max(1, Math.min(30, price));
+            document.getElementById('target-price-display').innerText = targetPrice;
+            document.getElementById('target-sum-ref').innerText = targetPrice;
+            updateSackUI();
+        }
+
+        function changePrice(delta) {
+            setPrice(targetPrice + delta);
+        }
+
+        function setRandomPrice() {
+            setPrice(Math.floor(Math.random() * 30) + 1);
+        }
+
+        function clearSack() {
+            selectedCoinsInSack = [];
+            renderCoinBank();
+            updateSackUI();
+        }
+
+        // --- ZECKENDORF VALIDATION LOGIC ---
+        function validateRules(coins) {
+            // Rule 1: No duplicates (handled by array set logic, but let's check)
+            const hasDuplicates = new Set(coins).size !== coins.length;
+
+            // Rule 2: No consecutive Fibonacci numbers
+            // Fib sequence indices: 1(0), 2(1), 3(2), 5(3), 8(4), 13(5), 21(6)
+            const fibValues = [1, 2, 3, 5, 8, 13, 21];
+            let hasNeighbors = false;
+            let neighborPair = [];
+
+            for (let i = 0; i < coins.length; i++) {
+                for (let j = i + 1; j < coins.length; j++) {
+                    const idx1 = fibValues.indexOf(coins[i]);
+                    const idx2 = fibValues.indexOf(coins[j]);
+                    if (Math.abs(idx1 - idx2) === 1) {
+                        hasNeighbors = true;
+                        neighborPair = [coins[i], coins[j]];
+                        break;
+                    }
+                }
+            }
+
+            return {
+                validDuplicates: !hasDuplicates,
+                validNeighbors: !hasNeighbors,
+                neighborPair: neighborPair
+            };
+        }
+
+        function updateSackUI() {
+            const container = document.getElementById('sack-coins-container');
+            const emptyMsg = document.getElementById('sack-empty-msg');
+            const sumDisplay = document.getElementById('current-sum-display');
+            const statusBox = document.getElementById('status-feedback-box');
+
+            // Render coins inside sack
+            container.innerHTML = '';
+            if (selectedCoinsInSack.length === 0) {
+                container.appendChild(emptyMsg);
+                emptyMsg.classList.remove('hidden');
+            } else {
+                emptyMsg.classList.add('hidden');
+                selectedCoinsInSack.forEach(val => {
+                    const coinObj = FIBONACCI_COINS.find(c => c.val === val);
+                    const coinBubble = document.createElement('div');
+                    coinBubble.onclick = () => toggleCoin(val);
+                    coinBubble.className = `w-16 h-16 rounded-full border-4 flex flex-col items-center justify-center font-black cursor-pointer shadow-md transform hover:scale-110 transition ${coinObj.color}`;
+                    coinBubble.innerHTML = `
+                        <span class="text-lg leading-none">${val}</span>
+                        <span class="text-[8px] uppercase tracking-wider">Fibos</span>
+                    `;
+                    container.appendChild(coinBubble);
+                });
+            }
+
+            // Calculate Sum
+            const currentSum = selectedCoinsInSack.reduce((a, b) => a + b, 0);
+            sumDisplay.innerText = currentSum;
+
+            // Validate Rules
+            const validation = validateRules(selectedCoinsInSack);
+
+            // Update Status Banner
+            if (selectedCoinsInSack.length === 0) {
+                statusBox.className = "p-4 rounded-2xl border-2 bg-slate-100 border-slate-300 text-slate-600 text-sm font-bold flex items-center gap-3";
+                statusBox.innerHTML = `<i class="fa-solid fa-info-circle text-xl text-slate-400"></i><span>Afegeix monedes a la bossa per pagar el preu de <strong>${targetPrice} Fibos</strong>.</span>`;
+            } else if (!validation.validNeighbors) {
+                statusBox.className = "p-4 rounded-2xl border-2 bg-rose-100 border-rose-300 text-rose-800 text-sm font-bold flex items-center gap-3 animate-bounce";
+                statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-xl text-rose-600"></i><span><strong>REGLA 2 TRENCADA!</strong> Monedes veïnes detectedes: (${validation.neighborPair.join(' i ')}). En aquest poble no es poden posar juntes!</span>`;
+            } else if (currentSum > targetPrice) {
+                statusBox.className = "p-4 rounded-2xl border-2 bg-amber-100 border-amber-300 text-amber-900 text-sm font-bold flex items-center gap-3";
+                statusBox.innerHTML = `<i class="fa-solid fa-hand-holding-dollar text-xl text-amber-600"></i><span>T'has passat de preu! La suma actual (${currentSum}) és major que ${targetPrice}.</span>`;
+            } else if (currentSum < targetPrice) {
+                statusBox.className = "p-4 rounded-2xl border-2 bg-blue-50 border-blue-200 text-blue-800 text-sm font-bold flex items-center gap-3";
+                statusBox.innerHTML = `<i class="fa-solid fa-calculator text-xl text-blue-500"></i><span>Suma vàlida fins ara, però encara et falten <strong>${targetPrice - currentSum} Fibos</strong>.</span>`;
+            } else if (currentSum === targetPrice && validation.validNeighbors) {
+                statusBox.className = "p-4 rounded-2xl border-2 bg-emerald-100 border-emerald-400 text-emerald-900 text-sm font-bold flex items-center gap-3 shadow-md";
+                statusBox.innerHTML = `<i class="fa-solid fa-circle-check text-2xl text-emerald-600"></i><span><strong>¡ENHORABONA!</strong> Has trobat la combinació de Zeckendorf exacta per a ${targetPrice}!</span>`;
+                
+                // Trigger confetti celebratory effect
+                confetti({
+                    particleCount: 50,
+                    spread: 60,
+                    origin: { y: 0.7 }
+                });
+
+                // Mark solved in table
+                solvedPrices.add(targetPrice);
+                updateChallengeProgress();
+            }
+        }
+
+        // Automatic Zeckendorf Solver (Greedy approach)
+        function autoSolveZeckendorf() {
+            let tempPrice = targetPrice;
+            const result = [];
+            const fibs = [21, 13, 8, 5, 3, 2, 1];
+
+            for (let f of fibs) {
+                if (f <= tempPrice) {
+                    result.push(f);
+                    tempPrice -= f;
+                }
+            }
+
+            selectedCoinsInSack = result;
+            renderCoinBank();
+            updateSackUI();
+        }
+
+        // --- CHALLENGE TABLE (1 to 30) ---
+        function renderChallengeGrid() {
+            const grid = document.getElementById('challenge-grid');
+            grid.innerHTML = '';
+
+            for (let i = 1; i <= 30; i++) {
+                const card = document.createElement('div');
+                card.id = `challenge-item-${i}`;
+                card.className = `p-3.5 rounded-2xl border-2 transition flex items-center justify-between bg-slate-50 border-slate-200`;
+                
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-slate-200 font-black text-slate-700 flex items-center justify-center text-sm">
+                            ${i}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider block">Preu</span>
+                            <span id="solution-text-${i}" class="text-xs font-bold text-slate-600 font-mono">?</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="solveInSack(${i})" class="px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-bag-shopping"></i> Provar
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            }
+        }
+
+        function solveInSack(price) {
+            setPrice(price);
+            switchTab('bossa');
+        }
+
+        function updateChallengeProgress() {
+            const progressText = document.getElementById('progress-text');
+            const progressBar = document.getElementById('progress-bar-fill');
+            const count = solvedPrices.size;
+
+            progressText.innerText = `${count} / 30 resolts`;
+            progressBar.style.width = `${(count / 30) * 100}%`;
+
+            // Update item style in grid
+            solvedPrices.forEach(price => {
+                const item = document.getElementById(`challenge-item-${price}`);
+                const solText = document.getElementById(`solution-text-${price}`);
+                if (item) {
+                    item.className = "p-3.5 rounded-2xl border-2 transition flex items-center justify-between bg-emerald-50 border-emerald-300 shadow-sm";
+                    
+                    // calculate Zeckendorf text
+                    let temp = price;
+                    const res = [];
+                    [21, 13, 8, 5, 3, 2, 1].forEach(f => {
+                        if (f <= temp) { res.push(f); temp -= f; }
+                    });
+                    solText.innerText = res.join(' + ') + ' Fibos';
+                    solText.className = "text-xs font-bold text-emerald-700 font-mono";
+                }
+            });
+        }
+
+        // --- MAGIC CARDS TRICK ---
+        function renderMagicCards() {
+            const container = document.getElementById('magic-cards-container');
+            container.innerHTML = '';
+
+            MAGIC_CARDS.forEach(card => {
+                magicCardChoices[card.id] = false;
+
+                const cardEl = document.createElement('div');
+                cardEl.className = "bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 flex flex-col justify-between space-y-3";
+                
+                // Numbers layout grid
+                const numsGrid = card.numbers.map(n => `<span class="bg-white/10 rounded px-1.5 py-0.5 text-center text-xs font-bold">${n}</span>`).join('');
+
+                cardEl.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                        <span class="font-black text-yellow-300 text-sm">${card.name}</span>
+                        <span class="text-[10px] bg-purple-500/40 text-purple-200 px-2 py-0.5 rounded-full font-mono">Base: ${card.base}</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1.5 my-2">
+                        ${numsGrid}
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="setMagicChoice('${card.id}', true)" id="btn-magic-${card.id}-yes" class="flex-1 py-1.5 rounded-xl bg-white/10 hover:bg-emerald-500/40 text-xs font-bold border border-white/20 transition">SÍ</button>
+                        <button onclick="setMagicChoice('${card.id}', false)" id="btn-magic-${card.id}-no" class="flex-1 py-1.5 rounded-xl bg-white/10 hover:bg-rose-500/40 text-xs font-bold border border-white/20 transition">NO</button>
+                    </div>
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        function setMagicChoice(cardId, choice) {
+            magicCardChoices[cardId] = choice;
+
+            // Highlight buttons
+            const yesBtn = document.getElementById(`btn-magic-${cardId}-yes`);
+            const noBtn = document.getElementById(`btn-magic-${cardId}-no`);
+
+            if (choice) {
+                yesBtn.className = "flex-1 py-1.5 rounded-xl bg-emerald-500 text-white text-xs font-bold shadow-md transition scale-105";
+                noBtn.className = "flex-1 py-1.5 rounded-xl bg-white/10 text-xs font-bold border border-white/10 opacity-50 transition";
+            } else {
+                noBtn.className = "flex-1 py-1.5 rounded-xl bg-rose-500 text-white text-xs font-bold shadow-md transition scale-105";
+                yesBtn.className = "flex-1 py-1.5 rounded-xl bg-white/10 text-xs font-bold border border-white/10 opacity-50 transition";
+            }
+
+            calculateMagicResult();
+        }
+
+        function calculateMagicResult() {
+            let total = 0;
+            let activeBases = [];
+
+            MAGIC_CARDS.forEach(card => {
+                if (magicCardChoices[card.id] === true) {
+                    total += card.base;
+                    activeBases.push(card.base);
+                }
+            });
+
+            const resultDisplay = document.getElementById('magic-result-display');
+            const explanation = document.getElementById('magic-explanation');
+
+            if (total > 0) {
+                resultDisplay.innerText = total;
+                explanation.innerHTML = `Suma de les targetes seleccionades: <strong>${activeBases.join(' + ')} = ${total}</strong> (Representació de Zeckendorf!)`;
+            } else {
+                resultDisplay.innerText = "?";
+                explanation.innerText = "Selecciona SÍ a les targetes on aparegui el teu nombre!";
+            }
+        }
+
+        function resetMagicCards() {
+            MAGIC_CARDS.forEach(card => {
+                magicCardChoices[card.id] = false;
+                const yesBtn = document.getElementById(`btn-magic-${card.id}-yes`);
+                const noBtn = document.getElementById(`btn-magic-${card.id}-no`);
+                yesBtn.className = "flex-1 py-1.5 rounded-xl bg-white/10 hover:bg-emerald-500/40 text-xs font-bold border border-white/20 transition";
+                noBtn.className = "flex-1 py-1.5 rounded-xl bg-white/10 hover:bg-rose-500/40 text-xs font-bold border border-white/20 transition";
+            });
+            document.getElementById('magic-result-display').innerText = "?";
+            document.getElementById('magic-explanation').innerText = "Selecciona SÍ a les targetes on aparegui el teu nombre!";
+        }
+    </script>
+</body>
+</html>
